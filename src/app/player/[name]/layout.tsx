@@ -1,4 +1,11 @@
 import Link from "next/link";
+import {
+    Box,
+    Button,
+    Paper,
+    Stack,
+    Typography,
+} from "@mui/material";
 
 export default async function PlayerLayout({
                                                children,
@@ -10,35 +17,52 @@ export default async function PlayerLayout({
     const { name } = await params;
 
     return (
-        <main className="min-h-screen p-8">
-            <h1 className="text-3xl font-bold">Player</h1>
+        <Box sx={{ p: 4 }}>
+            <Typography
+                variant="h4"
+                component="h1"
+                sx={{ fontWeight: 700, mb: 1 }}
+            >
+                Player
+            </Typography>
 
-            <p className="opacity-80 mb-6">{name}</p>
+            <Typography
+                variant="body1"
+                color="text.secondary"
+                sx={{ mb: 4 }}
+            >
+                {name}
+            </Typography>
 
-            <nav className="flex gap-2 mb-8">
-                <Link
-                    href={`/player/${name}/summary`}
-                    className="border rounded px-4 py-2 hover:bg-gray-100"
-                >
-                    Summary
-                </Link>
+            <Paper
+                variant="outlined"
+                sx={{
+                    p: 2,
+                    mb: 4,
+                }}
+            >
+                <Stack direction="row" spacing={1}>
+                    <Link href={`/player/${name}/summary`}>
+                        <Button variant="contained">
+                            Summary
+                        </Button>
+                    </Link>
 
-                <Link
-                    href={`/player/${name}/cotd`}
-                    className="border rounded px-4 py-2 hover:bg-gray-100"
-                >
-                    Cup of the Day
-                </Link>
+                    <Link href={`/player/${name}/cotd`}>
+                        <Button variant="outlined">
+                            Cup of the Day
+                        </Button>
+                    </Link>
 
-                <Link
-                    href={`/player/${name}/trophy-gains`}
-                    className="border rounded px-4 py-2 hover:bg-gray-100"
-                >
-                    Trophy Gains
-                </Link>
-            </nav>
+                    <Link href={`/player/${name}/trophy-gains`}>
+                        <Button variant="outlined">
+                            Trophy Gains
+                        </Button>
+                    </Link>
+                </Stack>
+            </Paper>
 
             {children}
-        </main>
+        </Box>
     );
 }

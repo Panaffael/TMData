@@ -1,5 +1,17 @@
 import Link from "next/link";
 import type React from "react";
+import {
+    Box,
+    Button,
+    Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Typography,
+} from "@mui/material";
 
 type TotdDay = {
     campaignId: number;
@@ -43,7 +55,9 @@ async function getNadeoLiveToken(): Promise<string> {
         }
     );
 
-    if (!res.ok) throw new Error("Nadeo token could not be loaded");
+    if (!res.ok) {
+        throw new Error("Nadeo token could not be loaded");
+    }
 
     const data = await res.json();
     return data.accessToken;
@@ -54,7 +68,9 @@ async function getTrackmaniaOAuthToken(): Promise<string> {
     const clientSecret = process.env.TRACKMANIA_CLIENT_SECRET;
 
     if (!clientId || !clientSecret) {
-        throw new Error("TRACKMANIA_CLIENT_ID or TRACKMANIA_CLIENT_SECRET is missing");
+        throw new Error(
+            "TRACKMANIA_CLIENT_ID or TRACKMANIA_CLIENT_SECRET is missing"
+        );
     }
 
     const body = new URLSearchParams({
@@ -72,13 +88,18 @@ async function getTrackmaniaOAuthToken(): Promise<string> {
         cache: "no-store",
     });
 
-    if (!res.ok) throw new Error("OAuth token could not be loaded");
+    if (!res.ok) {
+        throw new Error("OAuth token could not be loaded");
+    }
 
     const data = await res.json();
     return data.access_token;
 }
 
-async function getMapInfo(mapUid: string, token: string): Promise<MapInfo | null> {
+async function getMapInfo(
+    mapUid: string,
+    token: string
+): Promise<MapInfo | null> {
     const res = await fetch(
         `https://live-services.trackmania.nadeo.live/api/token/map/${mapUid}`,
         {
@@ -89,7 +110,9 @@ async function getMapInfo(mapUid: string, token: string): Promise<MapInfo | null
         }
     );
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+        return null;
+    }
 
     return res.json();
 }
@@ -100,7 +123,9 @@ async function getAccountNames(
 ): Promise<Record<string, string>> {
     const uniqueIds = [...new Set(accountIds.filter(Boolean))];
 
-    if (uniqueIds.length === 0) return {};
+    if (uniqueIds.length === 0) {
+        return {};
+    }
 
     const params = new URLSearchParams();
 
@@ -119,7 +144,6 @@ async function getAccountNames(
     );
 
     if (!res.ok) {
-        console.log("Account names failed:", res.status, await res.text());
         return {};
     }
 
@@ -144,7 +168,9 @@ async function getTotdMonth(offset: number): Promise<{
         }
     );
 
-    if (!res.ok) throw new Error("TOTD could not be loaded");
+    if (!res.ok) {
+        throw new Error("TOTD could not be loaded");
+    }
 
     const data = await res.json();
     const month = data.monthList[0];
@@ -156,9 +182,15 @@ async function getTotdMonth(offset: number): Promise<{
     const daysWithMapInfo = await Promise.all(
         days.map(async (day) => {
             const mapInfo = await getMapInfo(day.mapUid, nadeoToken);
-            if (!mapInfo) return null;
 
-            return { ...day, mapInfo };
+            if (!mapInfo) {
+                return null;
+            }
+
+            return {
+                ...day,
+                mapInfo,
+            };
         })
     );
 
@@ -213,7 +245,10 @@ function renderTmText(text: string) {
             const code = text.slice(i + 1, i + 4);
 
             if (/^[0-9a-fA-F]{3}$/.test(code)) {
-                color = `#${code.split("").map((c) => c + c).join("")}`;
+                color = `#${code
+                    .split("")
+                    .map((c) => c + c)
+                    .join("")}`;
                 i += 4;
                 continue;
             }
@@ -260,8 +295,8 @@ function renderTmText(text: string) {
                     fontStyle: italic ? "italic" : undefined,
                 }}
             >
-        {textPart}
-      </span>
+                {textPart}
+            </span>
         );
     }
 
@@ -280,51 +315,100 @@ export default async function TracksPage({
     const tracks = totdMonth.days;
 
     return (
-        <div className="p-8">
-            <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-3xl font-bold">Track of the Day</h1>
+        <Box sx={{ p: 4 }}>
+            <Box
+                sx={{
+                    mb: 3,
+                    display: "flex",
+                    flexDirection: { xs: "column", md: "row" },
+                    alignItems: { xs: "stretch", md: "center" },
+                    justifyContent: "space-between",
+                    gap: 2,
+                }}
+            >
+                <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
+                    Track of the Day
+                </Typography>
 
-                <div className="flex items-center gap-3">
-                    <Link href={`/tracks?offset=${offset + 1}`} className="border px-4 py-2">
-                        Previous
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.5,
+                    }}
+                >
+                    <Link href={`/tracks?offset=${offset + 1}`}>
+                        <Button variant="outlined">Previous</Button>
                     </Link>
 
-                    <div className="border px-8 py-2 font-semibold">
+                    <Paper
+                        variant="outlined"
+                        sx={{
+                            px: 4,
+                            py: 1,
+                            fontWeight: 700,
+                            textAlign: "center",
+                            minWidth: 180,
+                        }}
+                    >
                         {getMonthName(totdMonth.month)} {totdMonth.year}
-                    </div>
+                    </Paper>
 
                     {offset > 0 && (
-                        <Link href={`/tracks?offset=${offset - 1}`} className="border px-4 py-2">
-                            Next
+                        <Link href={`/tracks?offset=${offset - 1}`}>
+                            <Button variant="outlined">Next</Button>
                         </Link>
                     )}
-                </div>
-            </div>
+                </Box>
+            </Box>
 
-            <table className="w-full border-collapse text-left">
-                <thead>
-                <tr>
-                    <th className="border p-2">Date</th>
-                    <th className="border p-2">Day</th>
-                    <th className="border p-2">Map</th>
-                    <th className="border p-2">Author Time</th>
-                </tr>
-                </thead>
+            <TableContainer component={Paper} variant="outlined">
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Date</TableCell>
+                            <TableCell>Day</TableCell>
+                            <TableCell>Map</TableCell>
+                            <TableCell>Author Time</TableCell>
+                            <TableCell>Players loaded</TableCell>
+                            <TableCell>Author Medals loaded</TableCell>
+                        </TableRow>
+                    </TableHead>
 
-                <tbody>
-                {tracks.map((track) => (
-                    <tr key={`${track.campaignId}-${track.monthDay}-${track.startTimestamp}`}>
-                        <td className="border p-2">{formatDate(track.startTimestamp)}</td>
-                        <td className="border p-2">{track.monthDay}</td>
-                        <td className="border p-2">
-                            <div>{renderTmText(track.mapInfo.name)}</div>
-                            <div className="text-sm text-gray-500">by {track.mapperName}</div>
-                        </td>
-                        <td className="border p-2">{formatTime(track.mapInfo.authorTime)}</td>
-                    </tr>
-                ))}
-                </tbody>
-            </table>
-        </div>
+                    <TableBody>
+                        {tracks.map((track) => (
+                            <TableRow
+                                key={`${track.campaignId}-${track.monthDay}-${track.startTimestamp}`}
+                                hover
+                            >
+                                <TableCell>
+                                    {formatDate(track.startTimestamp)}
+                                </TableCell>
+
+                                <TableCell>{track.monthDay}</TableCell>
+
+                                <TableCell>
+                                    <Box>{renderTmText(track.mapInfo.name)}</Box>
+                                    <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                    >
+                                        by {track.mapperName}
+                                    </Typography>
+                                </TableCell>
+
+                                <TableCell>
+                                    {formatTime(track.mapInfo.authorTime)}
+                                </TableCell>
+
+                                <TableCell />
+
+                                <TableCell />
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Box>
     );
 }

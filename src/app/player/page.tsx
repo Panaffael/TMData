@@ -3,6 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import {
+    Box,
+    Button,
+    Paper,
+    TextField,
+    Typography,
+} from "@mui/material";
+
 export default function PlayerPage() {
     const [name, setName] = useState("");
     const router = useRouter();
@@ -14,27 +22,51 @@ export default function PlayerPage() {
     }
 
     return (
-        <main className="min-h-screen p-8">
-            <h1 className="text-3xl font-bold mb-6">Player Search</h1>
+        <Box sx={{ p: 4 }}>
+            <Typography
+                variant="h4"
+                component="h1"
+                sx={{
+                    fontWeight: 700,
+                    mb: 3,
+                }}
+            >
+                Player Search
+            </Typography>
 
-            <div className="flex gap-2">
-                <input
-                    className="border rounded px-4 py-2 text-black"
-                    placeholder="Spielername suchen..."
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") searchPlayer();
+            <Paper
+                variant="outlined"
+                sx={{
+                    p: 3,
+                    maxWidth: 600,
+                }}
+            >
+                <Box
+                    sx={{
+                        display: "flex",
+                        gap: 2,
                     }}
-                />
-
-                <button
-                    onClick={searchPlayer}
-                    className="bg-blue-600 text-white px-4 py-2 rounded"
                 >
-                    Suchen
-                </button>
-            </div>
-        </main>
+                    <TextField
+                        fullWidth
+                        label="Player Name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                searchPlayer();
+                            }
+                        }}
+                    />
+
+                    <Button
+                        variant="contained"
+                        onClick={searchPlayer}
+                    >
+                        Search
+                    </Button>
+                </Box>
+            </Paper>
+        </Box>
     );
 }
