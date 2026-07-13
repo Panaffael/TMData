@@ -21,6 +21,11 @@ export type PlayerResult = {
     trophies: TrophyRanking | null;
 };
 
+export type PlayerSearchResult = {
+    accountId: string;
+    displayName: string;
+};
+
 export type TotdDay = {
     campaignId: number;
     mapUid: string;

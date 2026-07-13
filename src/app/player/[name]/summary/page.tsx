@@ -9,6 +9,8 @@ import {
     Typography,
 } from "@mui/material";
 
+import { savePlayer } from "@/lib/database/players";
+
 import {
     getNadeoLiveToken,
     getTrackmaniaOAuthToken,
@@ -19,13 +21,9 @@ import {
     getTrophyRanking,
 } from "@/lib/trackmania/players";
 
-import type { TrophyRanking } from "@/lib/trackmania/types";
-
-type PlayerResult = {
-    playerName: string;
-    accountId: string;
-    trophies: TrophyRanking | null;
-};
+import type {
+    PlayerResult,
+} from "@/lib/trackmania/types";
 
 async function getPlayer(
     name: string
@@ -47,6 +45,8 @@ async function getPlayer(
     }
 
     const [playerName, accountId] = player;
+
+    savePlayer(accountId, playerName);
 
     const trophies = await getTrophyRanking(
         accountId,

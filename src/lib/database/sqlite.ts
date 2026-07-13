@@ -40,6 +40,16 @@ function createDatabase(): Database.Database {
         CREATE INDEX IF NOT EXISTS idx_api_cache_expires_at
         ON api_cache(expires_at);
 
+        CREATE TABLE IF NOT EXISTS players (
+            account_id TEXT PRIMARY KEY,
+            display_name TEXT NOT NULL COLLATE NOCASE,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_players_display_name
+        ON players(display_name COLLATE NOCASE);
+
         CREATE TABLE IF NOT EXISTS maps (
             map_uid TEXT PRIMARY KEY,
             name TEXT NOT NULL,
