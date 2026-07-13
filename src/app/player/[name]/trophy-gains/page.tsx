@@ -1,11 +1,32 @@
-export default async function TrophyGainsPage() {
-    return (
-        <div className="border rounded p-4 max-w-xl">
-            <h2 className="text-xl font-bold">Trophy Gains</h2>
+import {
+    Paper,
+    Typography,
+} from "@mui/material";
 
-            <p className="mt-4">
-                Hier kommen später die Trophy-Gain-Daten hin.
-            </p>
-        </div>
+export default function TrophyGainsPage() {
+    return (
+        <Paper
+            variant="outlined"
+            sx={{
+                p: 3,
+                maxWidth: 700,
+            }}
+        >
+            <Typography
+                variant="h5"
+                component="h2"
+                sx={{ fontWeight: 700 }}
+            >
+                Trophy Gains
+            </Typography>
+
+            <Typography
+                color="text.secondary"
+                sx={{ mt: 2 }}
+            >
+                Hier kommen später die
+                Trophy-Gain-Daten hin.
+            </Typography>
+        </Paper>
     );
 }

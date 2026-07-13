@@ -16,9 +16,15 @@ export default function PlayerPage() {
     const router = useRouter();
 
     function searchPlayer() {
-        if (!name.trim()) return;
+        const trimmedName = name.trim();
 
-        router.push(`/player/${encodeURIComponent(name)}/summary`);
+        if (!trimmedName) {
+            return;
+        }
+
+        router.push(
+            `/player/${encodeURIComponent(trimmedName)}/summary`
+        );
     }
 
     return (
@@ -27,8 +33,8 @@ export default function PlayerPage() {
                 variant="h4"
                 component="h1"
                 sx={{
-                    fontWeight: 700,
                     mb: 3,
+                    fontWeight: 700,
                 }}
             >
                 Player Search
@@ -44,6 +50,10 @@ export default function PlayerPage() {
                 <Box
                     sx={{
                         display: "flex",
+                        flexDirection: {
+                            xs: "column",
+                            sm: "row",
+                        },
                         gap: 2,
                     }}
                 >
@@ -51,9 +61,11 @@ export default function PlayerPage() {
                         fullWidth
                         label="Player Name"
                         value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") {
+                        onChange={(event) =>
+                            setName(event.target.value)
+                        }
+                        onKeyDown={(event) => {
+                            if (event.key === "Enter") {
                                 searchPlayer();
                             }
                         }}
@@ -62,6 +74,10 @@ export default function PlayerPage() {
                     <Button
                         variant="contained"
                         onClick={searchPlayer}
+                        disabled={!name.trim()}
+                        sx={{
+                            minWidth: 120,
+                        }}
                     >
                         Search
                     </Button>

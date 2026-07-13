@@ -1,15 +1,25 @@
-type TrophyRanking = {
-    accountId: string;
-    countPoint: number;
-    echelon: number;
-    zones?: {
-        zoneName: string;
-        ranking: {
-            position: number;
-            length: number;
-        };
-    }[];
-};
+import {
+    Alert,
+    Box,
+    Divider,
+    List,
+    ListItem,
+    ListItemText,
+    Paper,
+    Typography,
+} from "@mui/material";
+
+import {
+    getNadeoLiveToken,
+    getTrackmaniaOAuthToken,
+} from "@/lib/trackmania/auth";
+
+import {
+    getPlayerIds,
+    getTrophyRanking,
+} from "@/lib/trackmania/players";
+
+import type { TrophyRanking } from "@/lib/trackmania/types";
 
 type PlayerResult = {
     playerName: string;
@@ -17,65 +27,208 @@ type PlayerResult = {
     trophies: TrophyRanking | null;
 };
 
-type ApiResponse = {
-    result: PlayerResult[];
-};
+async function getPlayer(
+    name: string
+): Promise<PlayerResult | null> {
+    const [oauthToken, nadeoLiveToken] = await Promise.all([
+        getTrackmaniaOAuthToken(),
+        getNadeoLiveToken(),
+    ]);
+
+    const players = await getPlayerIds(
+        name,
+        oauthToken
+    );
+
+    const player = Object.entries(players)[0];
+
+    if (!player) {
+        return null;
+    }
+
+    const [playerName, accountId] = player;
+
+    const trophies = await getTrophyRanking(
+        accountId,
+        nadeoLiveToken
+    );
+
+    return {
+        playerName,
+        accountId,
+        trophies,
+    };
+}
 
 export default async function SummaryPage({
                                               params,
                                           }: {
-    params: Promise<{ name: string }>;
+    params: Promise<{
+        name: string;
+    }>;
 }) {
     const { name } = await params;
 
-    const response = await fetch(
-        `http://localhost:3000/api/player/${encodeURIComponent(name)}`,
-        {
-            cache: "no-store",
-        }
-    );
+    let player: PlayerResult | null = null;
 
-    const data: ApiResponse = await response.json();
+    try {
+        player = await getPlayer(
+            decodeURIComponent(name)
+        );
+    } catch (error) {
+        console.error(error);
 
-    const player = data.result?.[0];
+        return (
+            <Alert severity="error">
+                Die Spielerdaten konnten nicht geladen werden.
+            </Alert>
+        );
+    }
 
     if (!player) {
-        return <p>Spieler nicht gefunden.</p>;
+        return (
+            <Alert severity="warning">
+                Spieler nicht gefunden.
+            </Alert>
+        );
     }
 
     return (
-        <div className="border rounded p-4 max-w-xl">
-            <h2 className="text-xl font-bold">{player.playerName}</h2>
+        <Paper
+            variant="outlined"
+            sx={{
+                p: 3,
+                maxWidth: 800,
+            }}
+        >
+            <Typography
+                variant="h4"
+                sx={{ fontWeight: 700 }}
+            >
+                {player.playerName}
+            </Typography>
 
-            <p className="text-sm opacity-80 mt-2">Account ID:</p>
-            <p>{player.accountId}</p>
+            <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 2 }}
+            >
+                Account ID
+            </Typography>
 
-            {player.trophies && (
+            <Typography
+                sx={{
+                    wordBreak: "break-all",
+                }}
+            >
+                {player.accountId}
+            </Typography>
+
+            <Divider sx={{ my: 3 }} />
+
+            {!player.trophies ? (
+                <Alert severity="info">
+                    Keine Trophäendaten vorhanden.
+                </Alert>
+            ) : (
                 <>
-                    <div className="mt-6">
-                        <h3 className="font-bold">Trophäen</h3>
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            mb: 2,
+                            fontWeight: 700,
+                        }}
+                    >
+                        Trophäen
+                    </Typography>
 
-                        <p>
-                            Punkte:{" "}
-                            {player.trophies.countPoint.toLocaleString()}
-                        </p>
+                    <Box
+                        sx={{
+                            display: "grid",
+                            gridTemplateColumns: {
+                                xs: "1fr",
+                                md: "1fr 1fr",
+                            },
+                            gap: 2,
+                        }}
+                    >
+                        <Paper
+                            variant="outlined"
+                            sx={{ p: 2 }}
+                        >
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                            >
+                                Punkte
+                            </Typography>
 
-                        <p>Echelon: {player.trophies.echelon}</p>
-                    </div>
+                            <Typography variant="h5">
+                                {player.trophies.countPoint.toLocaleString(
+                                    "de-CH"
+                                )}
+                            </Typography>
+                        </Paper>
 
-                    <div className="mt-4">
-                        <h3 className="font-bold">Ranking</h3>
+                        <Paper
+                            variant="outlined"
+                            sx={{ p: 2 }}
+                        >
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                            >
+                                Echelon
+                            </Typography>
 
-                        <ul className="list-disc pl-5">
-                            {player.trophies.zones?.map((zone) => (
-                                <li key={zone.zoneName}>
-                                    {zone.zoneName}: #{zone.ranking.position}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                            <Typography variant="h5">
+                                {player.trophies.echelon}
+                            </Typography>
+                        </Paper>
+                    </Box>
+
+                    <Divider sx={{ my: 3 }} />
+
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            mb: 2,
+                            fontWeight: 700,
+                        }}
+                    >
+                        Rankings
+                    </Typography>
+
+                    {player.trophies.zones &&
+                    player.trophies.zones.length > 0 ? (
+                        <List disablePadding>
+                            {player.trophies.zones.map(
+                                (zone) => (
+                                    <ListItem
+                                        key={zone.zoneName}
+                                        divider
+                                    >
+                                        <ListItemText
+                                            primary={
+                                                zone.zoneName
+                                            }
+                                            secondary={`#${zone.ranking.position.toLocaleString(
+                                                "de-CH"
+                                            )} von ${zone.ranking.length.toLocaleString(
+                                                "de-CH"
+                                            )}`}
+                                        />
+                                    </ListItem>
+                                )
+                            )}
+                        </List>
+                    ) : (
+                        <Typography color="text.secondary">
+                            Keine Rankingdaten vorhanden.
+                        </Typography>
+                    )}
                 </>
             )}
-        </div>
+        </Paper>
     );
 }

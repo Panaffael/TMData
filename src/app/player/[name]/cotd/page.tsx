@@ -1,11 +1,31 @@
-export default async function CotdPage() {
-    return (
-        <div className="border rounded p-4 max-w-xl">
-            <h2 className="text-xl font-bold">Cup of the Day</h2>
+import {
+    Paper,
+    Typography,
+} from "@mui/material";
 
-            <p className="mt-4">
+export default function CotdPage() {
+    return (
+        <Paper
+            variant="outlined"
+            sx={{
+                p: 3,
+                maxWidth: 700,
+            }}
+        >
+            <Typography
+                variant="h5"
+                component="h2"
+                sx={{ fontWeight: 700 }}
+            >
+                Cup of the Day
+            </Typography>
+
+            <Typography
+                color="text.secondary"
+                sx={{ mt: 2 }}
+            >
                 Hier kommen später die COTD-Daten hin.
-            </p>
-        </div>
+            </Typography>
+        </Paper>
     );
 }
