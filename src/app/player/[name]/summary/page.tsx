@@ -13,6 +13,7 @@ import { savePlayer } from "@/lib/database/players";
 
 import {
     getNadeoLiveToken,
+    getNadeoServicesToken,
     getTrackmaniaOAuthToken,
 } from "@/lib/trackmania/auth";
 
@@ -20,6 +21,8 @@ import {
     getPlayerIds,
     getTrophyRanking,
 } from "@/lib/trackmania/players";
+
+import { getPlayerCountry } from "@/lib/trackmania/zones";
 
 import type {
     PlayerResult,
@@ -46,12 +49,40 @@ async function getPlayer(
 
     const [playerName, accountId] = player;
 
-    savePlayer(accountId, playerName);
-
-    const trophies = await getTrophyRanking(
+    const trophiesPromise = getTrophyRanking(
         accountId,
         nadeoLiveToken
     );
+
+    let countryCode: string | null = null;
+    let countryName: string | null = null;
+
+    try {
+        const nadeoServicesToken =
+            await getNadeoServicesToken();
+
+        const country = await getPlayerCountry(
+            accountId,
+            nadeoServicesToken
+        );
+
+        countryCode = country?.countryCode ?? null;
+        countryName = country?.countryName ?? null;
+    } catch (error) {
+        console.error(
+            "Player country could not be loaded.",
+            error
+        );
+    }
+
+    savePlayer({
+        accountId,
+        displayName: playerName,
+        countryCode,
+        countryName,
+    });
+
+    const trophies = await trophiesPromise;
 
     return {
         playerName,

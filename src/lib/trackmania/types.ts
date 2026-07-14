@@ -24,6 +24,26 @@ export type PlayerResult = {
 export type PlayerSearchResult = {
     accountId: string;
     displayName: string;
+    countryCode: string | null;
+    countryName: string | null;
+};
+
+export type PlayerZoneResponse = {
+    accountId: string;
+    timestamp: string;
+    zoneId: string;
+};
+
+export type TrackmaniaZone = {
+    icon: string;
+    name: string;
+    parentId: string | null;
+    timestamp: string;
+    zoneId: string;
+};
+
+export type UbisoftSessionResponse = {
+    ticket?: string;
 };
 
 export type TotdDay = {

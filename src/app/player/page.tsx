@@ -23,6 +23,8 @@ import type {
     PlayerSearchResult,
 } from "@/lib/trackmania/types";
 
+import { countryCodeToFlag } from "@/lib/trackmania/countries";
+
 const MINIMUM_SEARCH_LENGTH = 3;
 const SEARCH_DELAY_MS = 300;
 
@@ -160,6 +162,45 @@ export default function PlayerPage() {
                                 ? option
                                 : option.displayName
                         }
+                        renderOption={(props, option) => (
+                            <li {...props}>
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 1,
+                                    }}
+                                >
+                                    {option.countryCode ? (
+                                        <Box
+                                            component="img"
+                                            src={`https://flagcdn.com/24x18/${option.countryCode.toLowerCase()}.png`}
+                                            alt=""
+                                            sx={{
+                                                width: 24,
+                                                height: 18,
+                                                objectFit: "cover",
+                                                flexShrink: 0,
+                                            }}
+                                        />
+                                    ) : (
+                                        <Typography
+                                            component="span"
+                                            sx={{
+                                                width: 24,
+                                                textAlign: "center",
+                                            }}
+                                        >
+                                            🌐
+                                        </Typography>
+                                    )}
+
+                                    <Typography component="span">
+                                        {option.displayName}
+                                    </Typography>
+                                </Box>
+                            </li>
+                        )}
                         isOptionEqualToValue={(option, value) =>
                             option.accountId === value.accountId
                         }
@@ -195,23 +236,6 @@ export default function PlayerPage() {
                                         event.preventDefault();
                                         searchPlayer();
                                     }
-                                }}
-                                InputProps={{
-                                    ...params.InputProps,
-                                    endAdornment: (
-                                        <>
-                                            {loading ? (
-                                                <CircularProgress
-                                                    size={20}
-                                                />
-                                            ) : null}
-
-                                            {
-                                                params.InputProps
-                                                    ?.endAdornment
-                                            }
-                                        </>
-                                    ),
                                 }}
                             />
                         )}

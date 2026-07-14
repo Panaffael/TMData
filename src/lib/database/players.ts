@@ -6,34 +6,57 @@ import type {
     PlayerSearchResult,
 } from "@/lib/trackmania/types";
 
+type SavePlayerInput = {
+    accountId: string;
+    displayName: string;
+    countryCode?: string | null;
+    countryName?: string | null;
+};
+
 type PlayerDatabaseRow = {
     accountId: string;
     displayName: string;
+    countryCode: string | null;
+    countryName: string | null;
 };
 
 const upsertPlayerStatement = db.prepare(`
     INSERT INTO players (
         account_id,
         display_name,
+        country_code,
+        country_name,
         created_at,
         updated_at
     )
     VALUES (
         @accountId,
         @displayName,
+        @countryCode,
+        @countryName,
         @now,
         @now
     )
     ON CONFLICT(account_id)
     DO UPDATE SET
         display_name = excluded.display_name,
+        country_code = COALESCE(
+            excluded.country_code,
+            players.country_code
+        ),
+        country_name = COALESCE(
+            excluded.country_name,
+            players.country_name
+        ),
         updated_at = excluded.updated_at
 `);
 
 const searchPlayersStatement = db.prepare(`
     SELECT
         account_id AS accountId,
-        display_name AS displayName
+        display_name AS displayName,
+        country_code AS countryCode,
+        country_name AS countryName
     FROM players
     WHERE display_name LIKE @prefix COLLATE NOCASE
     ORDER BY
@@ -42,20 +65,22 @@ const searchPlayersStatement = db.prepare(`
     LIMIT @limit
 `);
 
-export function savePlayer(
-    accountId: string,
-    displayName: string
-): void {
-    const trimmedAccountId = accountId.trim();
-    const trimmedDisplayName = displayName.trim();
+export function savePlayer(input: SavePlayerInput): void {
+    const accountId = input.accountId.trim();
+    const displayName = input.displayName.trim();
+    const countryCode =
+        input.countryCode?.trim().toUpperCase() || null;
+    const countryName = input.countryName?.trim() || null;
 
-    if (!trimmedAccountId || !trimmedDisplayName) {
+    if (!accountId || !displayName) {
         return;
     }
 
     upsertPlayerStatement.run({
-        accountId: trimmedAccountId,
-        displayName: trimmedDisplayName,
+        accountId,
+        displayName,
+        countryCode,
+        countryName,
         now: Date.now(),
     });
 }

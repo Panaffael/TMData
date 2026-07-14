@@ -21,6 +21,43 @@ const globalForDatabase = globalThis as unknown as {
     tmdataDatabase?: Database.Database;
 };
 
+function columnExists(
+    database: Database.Database,
+    tableName: string,
+    columnName: string
+): boolean {
+    const columns = database
+        .prepare(`PRAGMA table_info(${tableName})`)
+        .all() as Array<{ name: string }>;
+
+    return columns.some(
+        (column) => column.name === columnName
+    );
+}
+
+function migratePlayerTable(
+    database: Database.Database
+): void {
+    if (!columnExists(database, "players", "country_code")) {
+        database.exec(`
+            ALTER TABLE players
+            ADD COLUMN country_code TEXT
+        `);
+    }
+
+    if (!columnExists(database, "players", "country_name")) {
+        database.exec(`
+            ALTER TABLE players
+            ADD COLUMN country_name TEXT
+        `);
+    }
+
+    database.exec(`
+        CREATE INDEX IF NOT EXISTS idx_players_country_code
+        ON players(country_code)
+    `);
+}
+
 function createDatabase(): Database.Database {
     const database = new Database(databasePath);
 
@@ -43,6 +80,8 @@ function createDatabase(): Database.Database {
         CREATE TABLE IF NOT EXISTS players (
             account_id TEXT PRIMARY KEY,
             display_name TEXT NOT NULL COLLATE NOCASE,
+            country_code TEXT,
+            country_name TEXT,
             created_at INTEGER NOT NULL,
             updated_at INTEGER NOT NULL
         );
@@ -107,6 +146,8 @@ function createDatabase(): Database.Database {
             is_complete INTEGER NOT NULL DEFAULT 0
         );
     `);
+
+    migratePlayerTable(database);
 
     console.log(`SQLite-Datenbank geöffnet: ${databasePath}`);
 
